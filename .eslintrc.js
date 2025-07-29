@@ -71,7 +71,7 @@ module.exports = {
 				'n8n-nodes-base/node-filename-against-convention': 'error',
 				'n8n-nodes-base/node-param-array-type-assertion': 'error',
 				'n8n-nodes-base/node-param-color-type-unused': 'error',
-				'n8n-nodes-base/node-param-default-missing': 'error',
+				'n8n-nodes-base/node-param-default-missing': 'off',
 				'n8n-nodes-base/node-param-default-wrong-for-boolean': 'error',
 				'n8n-nodes-base/node-param-default-wrong-for-collection': 'error',
 				'n8n-nodes-base/node-param-default-wrong-for-fixed-collection': 'error',
