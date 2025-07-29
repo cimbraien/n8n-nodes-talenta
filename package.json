@@ -1,6 +1,6 @@
 {
   "name": "@cimbraien/n8n-nodes-talenta",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Unofficial n8n integration for the Talenta Mekari API — enabling workflow automation with Talenta’s HRIS platform.",
   "license": "MIT",
   "homepage": "",
