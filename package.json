@@ -1,7 +1,7 @@
 {
-  "name": "n8n-nodes-talenta",
+  "name": "@cimbraien/n8n-nodes-talenta",
   "version": "0.1.0",
-  "description": "",
+  "description": "Unofficial n8n integration for the Talenta Mekari API — enabling workflow automation with Talenta’s HRIS platform.",
   "license": "MIT",
   "homepage": "",
   "author": {
@@ -12,6 +12,9 @@
     "type": "git",
     "url": "https://github.com/cimbraien/n8n-nodes-talenta"
   },
+  "keywords": [
+    "n8n-community-node-package"
+  ],
   "engines": {
     "node": ">=20.15"
   },
