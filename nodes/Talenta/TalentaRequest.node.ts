@@ -73,8 +73,8 @@ async function makeRequest(
 	const queryString =
 		Object.entries(queryParams).length > 0
 			? `?${Object.entries(queryParams)
-				.map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-				.join('&')}`
+					.map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+					.join('&')}`
 			: '';
 	const baseUrl = String(credentials.baseUrl).replace(/\/+$/, '');
 	const url = baseUrl + path + queryString;
@@ -403,66 +403,38 @@ export class TalentaRequest implements INodeType {
 					queryParams[param] = value as string | number;
 				}
 			}
-			const queryString =
-				Object.entries(queryParams).length > 0
-					? `?${Object.entries(queryParams)
-						.map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-						.join('&')}`
-					: '';
-			const baseUrl = String(credentials.baseUrl).replace(/\/+$/, '');
-			const url = baseUrl + path + queryString;
 
-			const basePath = baseUrl.replace(/^https?:\/\/[^/]+/, '');
-			const fullPathForSignature = basePath + path + queryString;
+			const pathVars = action.pathVariables.reduce((acc, varName) => {
+				const value = this.getNodeParameter(varName, i, undefined);
+				if (typeof value === 'string' || typeof value === 'number') acc[varName] = value;
+				return acc;
+			}, {} as Record<string, string | number>);
 
-			let body: IDataObject | undefined = undefined;
-			if (action.bodyParams.length > 0) {
-				body = {};
-				for (const param of action.bodyParams) {
-					const value = this.getNodeParameter(param, i, undefined);
-					if (value !== undefined && value !== '') {
-						body[param] = value;
-					}
-				}
-			}
+			const bodyParams = action.bodyParams.reduce((acc, param) => {
+				const value = this.getNodeParameter(param, i, undefined);
+				if (typeof value === 'string' || typeof value === 'number') acc[param] = value;
+				return acc;
+			}, {} as Record<string, string | number>);
 
-			const requestLine = `${action.method} ${fullPathForSignature} HTTP/1.1`;
-			const dateString = new Date().toUTCString();
-			const digest = crypto.HmacSHA256(
-				['date: ' + dateString, requestLine].join('\n'),
-				String(credentials.clientSecret),
+			const response = await makeRequest(
+				this,
+				action,
+				credentials,
+				i,
+				pathVars,
+				queryParams,
+				bodyParams,
 			);
-			const signature = crypto.enc.Base64.stringify(digest);
-			const hmacHeader = `hmac username="${credentials.clientId}", algorithm="hmac-sha256", headers="date request-line", signature="${signature}"`;
 
-			const headers: IDataObject = {
-				Authorization: hmacHeader,
-				Date: dateString,
-				'Content-Type': 'application/json',
-			};
-
-			let response;
-			try {
-				response = await makeRequest(this, action, credentials, i, {}, queryParams, body);
-			} catch (error) {
-				const debugInfo = {
-					requestLine,
-					dateString,
-					signature,
-					hmacHeader,
-					headers,
-					url,
-					body,
-				};
-				const errorWithDebug = Object.assign(
-					error instanceof Error ? { message: error.message } : {},
-					error,
-					{ description: JSON.stringify(debugInfo, null, 2) },
-				);
-				throw new NodeApiError(this.getNode(), errorWithDebug, { itemIndex: i });
-			}
 			let arrayResults: any[] = [];
-			if (response && typeof response === 'object' && response.response && typeof response.response === 'object' && response.response.data && typeof response.response.data === 'object') {
+			if (
+				response &&
+				typeof response === 'object' &&
+				response.response &&
+				typeof response.response === 'object' &&
+				response.response.data &&
+				typeof response.response.data === 'object'
+			) {
 				for (const value of Object.values(response.response.data)) {
 					if (Array.isArray(value)) {
 						arrayResults = value;
@@ -475,7 +447,12 @@ export class TalentaRequest implements INodeType {
 					returnData.push({ json: row });
 				}
 			} else {
-				returnData.push({ json: typeof response.response === 'string' ? { response: response.response } : response.response });
+				returnData.push({
+					json:
+						typeof response.response === 'string'
+							? { response: response.response }
+							: response.response,
+				});
 			}
 		}
 
